@@ -676,19 +676,44 @@ namespace algebra
    }
 
 
-   bool Matrix::check_vector(const vector <bool> &v)
+   bool check_vector(const vector <bool> &v)
    {
+       unsigned k = 0;
        for (bool e : v)
        {
-           if (!e)
+           if (e)
            {
-               return false;
+               k+= 1;
            }
        }
-       return true;
+       if (v.size() == k)
+       {
+           return true;
+       }
+       else
+       {
+           return false;
+       }
    }
 
-   vectord Matrix::method_iterations(const Matrix &matr)
+   bool check_matr_x(const Matrix &x0, const Matrix &x1, double epsilon)
+   {
+       vector <bool> s(x0.size_H());
+       for (unsigned i = 0; i < x0.size_H(); i++)
+       {
+           if (abs(x0.content[i][0] - x1.content[i][0]) < epsilon)
+           {
+               s[i] = false;
+           }
+           else
+           {
+               s[i] = true;
+           }
+       }
+       return check_vector(s);
+   }
+
+   Matrix method_iterations(const Matrix &matr, double E)
    {
        Matrix A(matr.size_H(), matr.size_W() - 1);
        Matrix B(matr.size_H(), 1);
@@ -723,6 +748,8 @@ namespace algebra
                A.replace_line(i);
            }
        }
+
+
 
 
        for (unsigned i = 0; i < A.size_H(); i++)
@@ -819,10 +846,183 @@ namespace algebra
 
        if (check_vector(s1) || check_vector(s2) || check_vector(s3))
        {
-           for (unsigned i = 0; i < )
+           do
+           {
+               X0 = X1;
+               X1 = Beta - Alpha * X0;
+               //print_matrix(X1, 13, 7);
+           }while(check_matr_x(X0,X1,E));
+       }
+
+       return X1;
+   }
+
+
+
+   Matrix method_zeidelya(const Matrix &matr, double E)
+   {
+       Matrix A(matr.size_H(), matr.size_W() - 1);
+       Matrix B(matr.size_H(), 1);
+
+       Matrix Alpha(matr.size_H(), matr.size_W() - 1);
+       Matrix Beta(matr.size_H(), 1);
+
+       Matrix X0(matr.size_H(), 1);
+       Matrix X1(matr.size_H(), 1);
+
+
+       for (unsigned i = 0; i < matr.size_H(); i++)
+       {
+           for (unsigned j = 0; j < matr.size_W(); j++)
+           {
+               if (j < matr.size_W() - 1)
+               {
+                   A.content[i][j] = matr.content[i][j];
+               }
+               else
+               {
+                   B.content[i][0] = matr.content[i][j];
+               }
+           }
        }
 
 
+       for (unsigned i = 0; i < A.size_H(); i++)
+       {
+           if (A.content[i][i] == 0.000)
+           {
+               A.replace_line(i);
+           }
+       }
+
+
+
+
+       for (unsigned i = 0; i < A.size_H(); i++)
+       {
+           for (unsigned j = 0; j < A.size_W(); j++)
+           {
+               if (i == j)
+               {
+                   Alpha.content[i][j] = 0.000;
+               }
+               else
+               {
+                   Alpha.content[i][j] = A.content[i][j] / A.content[i][i];
+               }
+           }
+       }
+
+
+       for (unsigned i = 0; i < Beta.size_H(); i++)
+       {
+           Beta.content[i][0] = B.content[i][0] / A.content[i][i];
+       }
+
+
+       vector <bool> k(3);
+       for (unsigned i = 0; i < 3; i++)
+       {
+           k[i] = false;
+       }
+
+       vector <bool> s1(A.size_W());
+       vector <bool> s2(A.size_W());
+       vector <bool> s3(A.size_W());
+//       for (unsigned i = 0; i < A.size_W(); i++)
+//       {
+//           s1[i] = false;
+//       }
+
+       for (unsigned j = 0; j < Alpha.size_W(); j++)
+       {
+           double sum = 0.000;
+           for (unsigned i = 0; i < Alpha.size_H(); i++)
+           {
+                sum += abs(Alpha.content[i][j]);
+           }
+           if (sum < 1.00)
+           {
+               s1[j] = true;
+           }
+           else
+           {
+               s1[j] = false;
+           }
+       }
+
+
+       for (unsigned i = 0; i < Alpha.size_H(); i++)
+       {
+           double sum = 0.000;
+           for (unsigned j = 0; j < Alpha.size_W(); j++)
+           {
+                sum += abs(Alpha.content[i][j]);
+           }
+           if (sum < 1.00)
+           {
+               s2[i] = true;
+           }
+           else
+           {
+               s2[i] = false;
+           }
+       }
+
+
+       for (unsigned i = 0; i < Alpha.size_H(); i++)
+       {
+           double sum = 0.000;
+           for (unsigned j = 0; j < Alpha.size_W(); j++)
+           {
+               if (i != j)
+               {
+                    sum += abs(A.content[i][j]);
+               }
+           }
+           if (sum < abs(A.content[i][i]))
+           {
+               s3[i] = true;
+           }
+           else
+           {
+               s3[i] = false;
+           }
+       }
+
+       if (check_vector(s1) || check_vector(s2) || check_vector(s3))
+       {
+           do
+           {
+               X0 = X1;
+               for (unsigned i = 0; i < X0.size_H(); i++)
+               {
+                   X1.content[i][0] = Beta.content[i][0];
+                   double sum1 = 0.00;
+                   for (unsigned j = i; j < X0.size_H(); j++)
+                   {
+                       if (i != j)
+                       {
+                           sum1 -= Alpha.content[i][j]*X0.content[j][0];
+                       }
+                   }
+
+                   double sum2 = 0.00;
+                   for (unsigned j = 0; j < i; j++)
+                   {
+                       if (i != j)
+                       {
+                           sum2 -= Alpha.content[i][j]*X1.content[j][0];
+                       }
+                   }
+
+                   X1.content[i][0] += sum1 + sum2;
+               }
+               // print_matrix(X1, 13, 7);
+           }while(check_matr_x(X0,X1,E));
+       }
+
+       return X1;
    }
 
 

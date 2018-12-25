@@ -19,7 +19,8 @@ namespace algebra
         matrixd content;
 
     private:
-        bool check_vector(const vector <bool> &v);
+        friend bool check_vector(const vector <bool> &v);
+        friend bool check_matr_x(const Matrix &x0, const Matrix &x1, double epsilon);
 
     public:
         Matrix(unsigned m = 0, unsigned n = 0);     //  Creates a matrix of zeros
@@ -57,7 +58,8 @@ namespace algebra
         friend vectord reverse_step(const Matrix &matr);        // Finding unknowns after using the Gauss method
 
 
-        vectord method_iterations(const Matrix &matr);
+        friend Matrix method_iterations(const Matrix &matr, double E);
+        friend Matrix method_zeidelya(const Matrix &matr, double E);
     };
     void print_row(const Matrix &matr, unsigned i, int a = 7, int b = 2);       // Print one of the rows of the matrix
     void print_matrix(const Matrix &matr, int a = 7, int b = 2);        // Print matrix
