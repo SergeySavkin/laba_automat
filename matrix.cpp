@@ -696,6 +696,10 @@ namespace algebra
        Matrix Alpha(matr.size_H(), matr.size_W() - 1);
        Matrix Beta(matr.size_H(), 1);
 
+       Matrix X0(matr.size_H(), 1);
+       Matrix X1(matr.size_H(), 1);
+
+
        for (unsigned i = 0; i < matr.size_H(); i++)
        {
            for (unsigned j = 0; j < matr.size_W(); j++)
@@ -784,12 +788,38 @@ namespace algebra
            }
            if (sum < 1.00)
            {
-               s1[i] = true;
+               s2[i] = true;
            }
            else
            {
-               s1[i] = false;
+               s2[i] = false;
            }
+       }
+
+
+       for (unsigned i = 0; i < Alpha.size_H(); i++)
+       {
+           double sum = 0.000;
+           for (unsigned j = 0; j < Alpha.size_W(); j++)
+           {
+               if (i != j)
+               {
+                    sum += abs(A.content[i][j]);
+               }
+           }
+           if (sum < abs(A.content[i][i]))
+           {
+               s3[i] = true;
+           }
+           else
+           {
+               s3[i] = false;
+           }
+       }
+
+       if (check_vector(s1) || check_vector(s2) || check_vector(s3))
+       {
+           for (unsigned i = 0; i < )
        }
 
 
